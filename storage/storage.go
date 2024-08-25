@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"fmt"
+	// "fmt"
 	"log"
+	"os"
 
 	"github.com/rrraf1/soundshare/models"
 	"gorm.io/driver/postgres"
@@ -25,8 +26,8 @@ func MigrateAll(db *gorm.DB) error {
 	return nil
 }
 
-func NewConnection(config *Config) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable", config.Host, config.Port, config.User, config.DBName)
+func NewConnection() (*gorm.DB, error) {
+	dsn := os.Getenv("POSTGRES_URL")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {

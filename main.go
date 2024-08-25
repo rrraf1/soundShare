@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"os"
+	// "os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -17,14 +17,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	config := &storage.Config{
-		Host:   os.Getenv("DB_HOST"),
-		Port:   os.Getenv("DB_PORT"),
-		User:   os.Getenv("DB_USER"),
-		DBName: os.Getenv("DB_NAME"),
-	}
-
-	db, err := storage.NewConnection(config)
+	db, err := storage.NewConnection()
 	if err != nil {
 		log.Fatal(err)
 	}
