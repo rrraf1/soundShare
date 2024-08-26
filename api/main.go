@@ -1,9 +1,8 @@
-package main
+package api
 
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/adaptor/v2"
@@ -19,15 +18,19 @@ func init() {
 	}
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+// Handler - fungsi yang diekspor untuk Vercel
+func Handler(w http.ResponseWriter, r *http.Request) {
 	db, err := storage.NewConnection()
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Database connection error: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
-	// Migrate all models
 	if err := storage.MigrateAll(db); err != nil {
-		log.Fatal(err)
+		log.Printf("Database migration error: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	app := fiber.New()
@@ -37,12 +40,4 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	repo.SetupRoutes(app)
 
 	adaptor.FiberApp(app).ServeHTTP(w, r)
-}
-
-func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "5000"
-	}
-	log.Fatal(http.ListenAndServe(":"+port, http.HandlerFunc(handler)))
 }
