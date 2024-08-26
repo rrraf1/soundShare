@@ -42,8 +42,8 @@ func (r *Repository) SetupRoutes(app *fiber.App) {
 	
 	// Music controller
 	api.Get("/musics", userRepo.GetMusics)
+	api.Post("/musics", userRepo.CreateMusic)
 	// api.Get("/musics/:id", controller.GetMusicByID)
-	// api.Post("/musics", controller.CreateMusic)
 	// api.Put("/musics/:id", controller.UpdateMusic)
 	// api.Delete("/musics/:id", controller.DeleteMusic)
 
