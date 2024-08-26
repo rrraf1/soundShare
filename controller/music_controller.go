@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/rrraf1/soundshare/models"
 	// "gorm.io/gorm"
 	"net/http"
 )
@@ -30,7 +31,7 @@ func (r *Repository) GetMusics(context *fiber.Ctx) error {
 
 func (r *Repository) CreateMusic(context *fiber.Ctx) error {
 	userID := context.Locals("userID").(uint)
-	var music Music
+	var music models.Music // Menggunakan struct dari package models
 	if err := context.BodyParser(&music); err != nil {
 		return context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{"message": "Error creating music"})
 	}
@@ -39,7 +40,7 @@ func (r *Repository) CreateMusic(context *fiber.Ctx) error {
 	if err := r.DB.Create(&music).Error; err != nil {
 		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Can't post music"})
 	}
-	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music post"})
+	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music posted"})
 	return nil
 }
 
@@ -56,7 +57,36 @@ func (r *Repository) DeleteMusic(context *fiber.Ctx) error {
 	if err != nil {
 		context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Could not delete music"})
 	}
-	
-	context.Status(http.StatusOK).JSON(&fiber.Map{"message" : "Book deleted"})
+
+	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Book deleted"})
 	return nil
+}
+
+func (r *Repository) UpdateMusic(context *fiber.Ctx) error {
+    var music Music
+    id := context.Params("id")
+
+    if id == "" {
+        return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "ID cannot be empty"})
+    }
+
+    if err := context.BodyParser(&music); err != nil {
+        return context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{"message": "Error parsing request body"})
+    }
+
+    var existingMusic Music
+    if err := r.DB.Where("id = ?", id).First(&existingMusic).Error; err != nil {
+        return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "Music not found"})
+    }
+
+    existingMusic.MusicName = music.MusicName
+    existingMusic.Artist = music.Artist
+    existingMusic.Genre = music.Genre
+    existingMusic.Link = music.Link
+
+    if err := r.DB.Save(&existingMusic).Error; err != nil {
+        return context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Could not update music"})
+    }
+
+    return context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music updated"})
 }
