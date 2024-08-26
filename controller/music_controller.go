@@ -42,3 +42,21 @@ func (r *Repository) CreateMusic(context *fiber.Ctx) error {
 	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music post"})
 	return nil
 }
+
+func (r *Repository) DeleteMusic(context *fiber.Ctx) error {
+	var music Music
+	id := context.Params("id")
+
+	if id == "" {
+		context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "ID could not be empty"})
+	}
+
+	err := r.DB.Delete(&music, id).Error
+
+	if err != nil {
+		context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Could not delete music"})
+	}
+	
+	context.Status(http.StatusOK).JSON(&fiber.Map{"message" : "Book deleted"})
+	return nil
+}
