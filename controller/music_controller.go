@@ -63,14 +63,14 @@ func (r *Repository) DeleteMusic(context *fiber.Ctx) error {
 }
 
 func (r *Repository) UpdateMusic(context *fiber.Ctx) error {
-    var music Music
+    var input Music
     id := context.Params("id")
 
     if id == "" {
         return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "ID cannot be empty"})
     }
 
-    if err := context.BodyParser(&music); err != nil {
+    if err := context.BodyParser(&input); err != nil {
         return context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{"message": "Error parsing request body"})
     }
 
@@ -79,14 +79,10 @@ func (r *Repository) UpdateMusic(context *fiber.Ctx) error {
         return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "Music not found"})
     }
 
-    existingMusic.MusicName = music.MusicName
-    existingMusic.Artist = music.Artist
-    existingMusic.Genre = music.Genre
-    existingMusic.Link = music.Link
-
-    if err := r.DB.Save(&existingMusic).Error; err != nil {
+    if err := r.DB.Model(&existingMusic).Updates(input).Error; err != nil {
         return context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Could not update music"})
     }
 
     return context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music updated"})
 }
+
