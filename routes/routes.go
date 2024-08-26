@@ -48,5 +48,5 @@ func (r *Repository) SetupRoutes(app *fiber.App) {
 	// api.Get("/musics/:id", controller.GetMusicByID)
 
 	// // User controller
-	// api.Get("/users/:username", controller.GetUser)
+	api.Get("/users/:username", userRepo.GetUsers)
 }

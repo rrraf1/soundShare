@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"github.com/rrraf1/soundshare/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -30,7 +31,9 @@ type Claims struct {
 
 func createToken(username string, userID uint) (string, error) {
 	err := godotenv.Load(".env")
-	if err != nil {log.Fatal("Error loading .env file")}
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 	claims := &Claims{
 		Username: username,
@@ -135,4 +138,35 @@ func (r *Repository) Login(context *fiber.Ctx) error {
 			},
 		},
 	})
+}
+
+func (r *Repository) GetUsers(context *fiber.Ctx) error {
+	var request struct {
+		Username string `JSON:"username"`
+	}
+
+	if err := context.BodyParser(&request); err != nil {
+		return context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Cannot parse body"})
+	}
+
+	var users User
+	var musics []models.Music
+
+
+	if err := r.DB.Where("username = ?", request.Username).First(&users).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "User not found"})
+		}
+		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message" : "Cannot searh users"})
+	}
+
+	if err := r.DB.Where("user_id = ?", users.ID).Find(&musics).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "User not found"})
+		}
+		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message" : "Cannot searh users"})
+	}
+
+	context.Status(http.StatusOK).JSON(&fiber.Map{"Users": users, "Musics": musics})
+	return nil
 }
