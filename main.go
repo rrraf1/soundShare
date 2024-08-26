@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	// "os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -15,7 +14,7 @@ import (
 func main() {
 	if _, exists := os.LookupEnv("RAILWAY_ENVIRONMENT"); !exists {
 		if err := godotenv.Load(); err != nil {
-			log.Fatal("error loading .env file:", err)
+			log.Println("Warning: error loading .env file:", err)
 		}
 	}
 
@@ -34,5 +33,12 @@ func main() {
 	r := routes.NewRepository(db)
 	r.SetupRoutes(app)
 
-	app.Listen(":5000")
+	// Use PORT provided in environment or default to 3000
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+
+	log.Printf("Starting server on port %s", port)
+	log.Fatal(app.Listen(":" + port))
 }
