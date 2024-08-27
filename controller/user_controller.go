@@ -152,8 +152,7 @@ func (r *Repository) GetUsers(context *fiber.Ctx) error {
 	var users User
 	var musics []models.Music
 
-
-	if err := r.DB.Where("username = ?", request.Username).First(&users).Error; err != nil {
+	if err := r.DB.Select("username, id").Where("username = ?", request.Username).First(&users).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "User not found"})
 		}
@@ -167,6 +166,6 @@ func (r *Repository) GetUsers(context *fiber.Ctx) error {
 		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message" : "Cannot searh users"})
 	}
 
-	context.Status(http.StatusOK).JSON(&fiber.Map{"Users": users, "Musics": musics})
+	context.Status(http.StatusOK).JSON(&fiber.Map{"Users": request.Username, "Musics": musics})
 	return nil
 }
