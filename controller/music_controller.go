@@ -40,7 +40,7 @@ func (r *Repository) CreateMusic(context *fiber.Ctx) error {
 	if err := r.DB.Create(&music).Error; err != nil {
 		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Can't post music"})
 	}
-	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music posted"})
+	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music posted!"})
 	return nil
 }
 
