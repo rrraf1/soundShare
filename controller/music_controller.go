@@ -31,7 +31,7 @@ func (r *Repository) GetMusics(context *fiber.Ctx) error {
 
 func (r *Repository) CreateMusic(context *fiber.Ctx) error {
 	userID := context.Locals("userID").(uint)
-	var music models.Music // Menggunakan struct dari package models
+	var music models.Music
 	if err := context.BodyParser(&music); err != nil {
 		return context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{"message": "Error creating music"})
 	}
@@ -46,7 +46,12 @@ func (r *Repository) CreateMusic(context *fiber.Ctx) error {
 
 func (r *Repository) DeleteMusic(context *fiber.Ctx) error {
 	var music Music
+	userID := context.Locals("userID").(uint)
 	id := context.Params("id")
+
+	if err := r.DB.Where("id = ? AND user_id = ?", id, userID).First(&music).Error; err != nil {
+		return context.Status(http.StatusForbidden).JSON(&fiber.Map{"message": "Can't delete this music"})
+	}
 
 	if id == "" {
 		context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "ID could not be empty"})
@@ -58,7 +63,7 @@ func (r *Repository) DeleteMusic(context *fiber.Ctx) error {
 		context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Could not delete music"})
 	}
 
-	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Book deleted"})
+	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music deleted"})
 	return nil
 }
 
