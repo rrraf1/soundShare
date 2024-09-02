@@ -3,6 +3,8 @@ package controller
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rrraf1/soundshare/models"
+	"gorm.io/gorm"
+
 	// "gorm.io/gorm"
 	"net/http"
 )
@@ -89,5 +91,25 @@ func (r *Repository) UpdateMusic(context *fiber.Ctx) error {
     }
 
     return context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music updated"})
+}
+
+func (r *Repository) GetMusicByName (context *fiber.Ctx) error {
+	var music Music
+
+	if err := context.BodyParser(&music); err != nil {
+		return context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{"message": "Error creating music"})
+	} 
+
+	MusicName := music.MusicName
+
+	if err := r.DB.Where("music_name = ?", MusicName).First(&music).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "Music with that name not found"})
+		}
+		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Error fetching music"})
+	}
+
+	context.Status(http.StatusOK).JSON(&fiber.Map{"data": music})
+	return nil
 }
 
