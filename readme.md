@@ -1,5 +1,3 @@
-Here's a sample `README.md` for your REST API project:
-
 ---
 
 # Music API - A Learning Tool for Frontend Developers
