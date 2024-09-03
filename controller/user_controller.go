@@ -160,9 +160,6 @@ func (r *Repository) GetUsers(context *fiber.Ctx) error {
 	}
 
 	if err := r.DB.Where("user_id = ?", users.ID).Find(&musics).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "User not found"})
-		}
 		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message" : "Cannot searh users"})
 	}
 

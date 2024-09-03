@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rrraf1/soundshare/models"
 	"gorm.io/gorm"
-
 	// "gorm.io/gorm"
 	"net/http"
 )
@@ -70,39 +69,39 @@ func (r *Repository) DeleteMusic(context *fiber.Ctx) error {
 }
 
 func (r *Repository) UpdateMusic(context *fiber.Ctx) error {
-    var input Music
-    id := context.Params("id")
+	var input Music
+	id := context.Params("id")
 
-    if id == "" {
-        return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "ID cannot be empty"})
-    }
+	if id == "" {
+		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "ID cannot be empty"})
+	}
 
-    if err := context.BodyParser(&input); err != nil {
-        return context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{"message": "Error parsing request body"})
-    }
+	if err := context.BodyParser(&input); err != nil {
+		return context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{"message": "Error parsing request body"})
+	}
 
-    var existingMusic Music
-    if err := r.DB.Where("id = ?", id).First(&existingMusic).Error; err != nil {
-        return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "Music not found"})
-    }
+	var existingMusic Music
+	if err := r.DB.Where("id = ?", id).First(&existingMusic).Error; err != nil {
+		return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "Music not found"})
+	}
 
-    if err := r.DB.Model(&existingMusic).Updates(input).Error; err != nil {
-        return context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Could not update music"})
-    }
+	if err := r.DB.Model(&existingMusic).Updates(input).Error; err != nil {
+		return context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Could not update music"})
+	}
 
-    return context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music updated"})
+	return context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Music updated"})
 }
 
-func (r *Repository) GetMusicByName (context *fiber.Ctx) error {
+func (r *Repository) GetMusicByName(context *fiber.Ctx) error {
 	var music Music
 
 	if err := context.BodyParser(&music); err != nil {
 		return context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{"message": "Error creating music"})
-	} 
+	}
 
 	MusicName := music.MusicName
 
-	if err := r.DB.Where("music_name = ?", MusicName).First(&music).Error; err != nil {
+	if err := r.DB.Where("music_name LIKE ?", "%"+MusicName+"%").First(&music).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "Music with that name not found"})
 		}
@@ -112,4 +111,3 @@ func (r *Repository) GetMusicByName (context *fiber.Ctx) error {
 	context.Status(http.StatusOK).JSON(&fiber.Map{"data": music})
 	return nil
 }
-
