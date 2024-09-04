@@ -21,37 +21,48 @@ type Music struct {
 }
 
 func (r *Repository) GetAllMusics(context *fiber.Ctx) error {
-	pageParams := context.Params("pages")
-	page, err := strconv.Atoi(pageParams)
-	if err != nil {
-		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Can't convert params into string"})
-	}
+    pageParams := context.Params("pages")
+    page, err := strconv.Atoi(pageParams)
+    if err != nil {
+        return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Can't convert params into integer"})
+    }
 
-	var request struct {
-		Username string `JSON:"username"`
-	}
-	var music []Music
-	var user models.Users
-	pageSize := 5
-	offset := (page - 1) * pageSize
+    var musics []Music
+    pageSize := 5
+    offset := (page - 1) * pageSize
 
-	if err := r.DB.Limit(pageSize).Offset(offset).Find(&music).Error; err != nil {
-		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Error fetching music"})
-	}
+    if err := r.DB.Limit(pageSize).Offset(offset).Find(&musics).Error; err != nil {
+        return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Error fetching music"})
+    }
 
-	if err := r.DB.Select("username").Where("id = ?", music[0].UserID).First(&user).Error; err != nil {
-		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Error fetching user"})
-	}
+    if len(musics) == 0 {
+        return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "No music found"})
+    }
 
-	request.Username = user.Username
+    var response []struct {
+        Music   Music  `json:"music"`
+        Username string `json:"username"`
+    }
 
-	if len(music) == 0 {
-		return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "No music found"})
-	}
+    for _, music := range musics {
+        var user models.Users
+        if err := r.DB.Select("username").Where("id = ?", music.UserID).First(&user).Error; err != nil {
+            return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Error fetching user"})
+        }
 
-	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "success", "data": &fiber.Map{"music": music, "user": request.Username}})
-	return nil
+        response = append(response, struct {
+            Music   Music  `json:"music"`
+            Username string `json:"username"`
+        }{
+            Music:   music,
+            Username: user.Username,
+        })
+    }
+
+    context.Status(http.StatusOK).JSON(&fiber.Map{"message": "success", "data": response})
+    return nil
 }
+
 
 func (r *Repository) GetMusics(context *fiber.Ctx) error {
 	userID := context.Locals("userID").(uint)
