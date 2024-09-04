@@ -96,6 +96,7 @@ Here’s a quick overview of the available endpoints:
   - `PUT /api/musics/:id` - Edit a specific musics file.
   - `DELETE /api/musics/:id` - Delete a specific musics file.
   - `GET /api/musics/details` - Get a spesific musics.
+  - `GET /api/musics/all/:pages` - Get all musics that uploaded.
 
 - **Search and Discovery**:
   - `GET /api/users/` - View musics uploaded by a specific user.
@@ -133,6 +134,10 @@ Here’s a quick overview of the available endpoints:
 8. **Search Musics**:
 
    Send a `GET` request to `/api/musics/details` to find the details of the music, the key is MusicName
+
+9. **Get all users music**:
+
+   Send a `GET` request to `/api/musics/all/:pages` to see all the musics that uploaded by all users
 
 ### License
 
