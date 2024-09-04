@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/rrraf1/soundshare/models"
 	"gorm.io/gorm"
+
 	// "gorm.io/gorm"
 	"net/http"
 )
@@ -15,6 +18,29 @@ type Music struct {
 	Genre     string `json:"genre"`
 	UserID    int    `json:"user_id"`
 	Link      string `json:"link"`
+}
+
+func (r *Repository) GetAllMusics(context *fiber.Ctx) error {
+	pageParams := context.Params("pages")
+	page, err := strconv.Atoi(pageParams)
+	if err != nil {
+		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Can't convert params into string"})
+	}
+
+	var music []Music
+	pageSize := 5
+	offset := (page - 1)*pageSize
+
+	if err := r.DB.Limit(pageSize).Offset(offset).Find(&music).Error; err != nil {
+		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Error fetching music"})
+	}
+
+	if len(music) == 0 {
+		return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "No music found"})
+	}
+
+	context.Status(http.StatusOK).JSON(music)
+	return nil
 }
 
 func (r *Repository) GetMusics(context *fiber.Ctx) error {
