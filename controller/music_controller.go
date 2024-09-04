@@ -27,19 +27,29 @@ func (r *Repository) GetAllMusics(context *fiber.Ctx) error {
 		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Can't convert params into string"})
 	}
 
+	var request struct {
+		Username string `JSON:"username"`
+	}
 	var music []Music
+	var user models.Users
 	pageSize := 5
-	offset := (page - 1)*pageSize
+	offset := (page - 1) * pageSize
 
 	if err := r.DB.Limit(pageSize).Offset(offset).Find(&music).Error; err != nil {
 		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Error fetching music"})
 	}
 
+	if err := r.DB.Select("username").Where("id = ?", music[0].UserID).First(&user).Error; err != nil {
+		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "Error fetching user"})
+	}
+
+	request.Username = user.Username
+
 	if len(music) == 0 {
 		return context.Status(http.StatusNotFound).JSON(&fiber.Map{"message": "No music found"})
 	}
 
-	context.Status(http.StatusOK).JSON(music)
+	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "success", "data": &fiber.Map{"music": music, "user": request.Username}})
 	return nil
 }
 
